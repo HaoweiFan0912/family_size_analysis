@@ -67,8 +67,61 @@ Figures, Tables, and References:
 [ ] Tables and figures are well designed (visually appealing, cohesive, and valuable). The information presented in each table/figure is easy to read and understand (e.g. avoids variable names from R, legible axis labels, etc.), makes sense to be presented in a single standalone unit, and is referenced and discussed in the main report text.  
 
 --------------------------------------------------------------------------------
+```{r}
+#| echo: false
+#| include: false
+#| warning: false
+#| message: false
+#### Workspace setup ####
+set.seed(912)
+# List of necessary packages
+packages <- c("ggplot2", "MASS", "pscl")
+# Install missing packages
+missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+install.packages(missing_packages)
+# Load packages
+lapply(packages, library, character.only = TRUE)
+
+#### Read data ####
+load(here::here("portugal.RData"))
+```
 
 ```{r}
+summary(portugal)
+```
 
+```{r}
+# Check for overdispersion.
+mean(portugal$children)
+sd(portugal$children)^2
+```
+```{r}
+# Check for zero inflation.
+hist(portugal$children)
+```
+```{r}
+m1 <- glm(children ~ literacy + ageMarried + region + age + monthsSinceM, 
+              family = poisson(link = "log"), 
+              data = portugal)
+m1_summ = cbind(est = m1$coef, confint(m1, level = 0.99))
+knitr::kable(cbind(summary(m1)$coef,exp(m1_summ)), digits = 3)
+summary(m1)
+```
+
+```{r}
+m2 <- glm(children ~ literacy + ageMarried + region + age, 
+                 family = poisson(link = "log"), 
+                 data = portugal, 
+                 offset = log(monthsSinceM + 0.000000000001))
+m2_summ = cbind(est = m2$coef, confint(m2, level = 0.9))
+knitr::kable(cbind(summary(m2)$coef,exp(m2_summ)), digits = 3)
+```
+
+```{r}
+m3 <- glm(children ~ literacy + ageMarried+ age, 
+                 family = poisson(link = "log"), 
+                 data = portugal, 
+                 offset = log(monthsSinceM + 0.000000000001))
+lmtest::lrtest(m2, m3)
 ```
 
