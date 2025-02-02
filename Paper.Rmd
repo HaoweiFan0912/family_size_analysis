@@ -1,72 +1,21 @@
-Check list:
+---
+title: ""
+subtitle: ""
+author: 
+  - Haowei Fan
+  - Fangning Zhang
+thanks: "Code and data are available at: "
+date: today
+date-format: long
+abstract: ""
+format: pdf
+toc-depth: 2    
+number-sections: true
+toc: true           
+toc-title: "Table of Contents" 
+bibliography: references.bib
+---
 
-General:
-
-[ ] Not exceed 1500 words.
-
-[ ] No more than 5 figures/tables.
-
-Introduction:
-
-[ ] About 2-3 paragraphs.
-
-[ ] A strong/convincing argument for the importance of this study, supported by peer-reviewed evidence (i.e. why this study is relevant to other people).  
-
-[ ] Summaries of at least three peer-reviewed articles on the same area, topic, or question as this study. These should concisely describe the main conclusion/result in the context of the study sample.  
-
-[ ] The research objective, goal, or question of this study is explicitly stated (i.e., what this study is going to do) and a strong connection is explicitly drawn between the literature summaries and this goal (i.e., how does the work of others fit into this goal/study).  
-
-[ ] A brief but correct overview of the general statistical techniques that will be employed in the paper (i.e., what types of procedures will be used) and how these allow the research goal to be met.  
-
-Methods:
-
-[ ] About 2-3 paragraphs.
-
-[ ] Not present any results or data summaries.
-
-[ ] Correctly mentioning what type of statistical model(s) will be considered using appropriate course terminology.  
-
-[ ] Correctly justifying why the statistical model(s) is/are appropriate for the problem, with specific reference to the type of data being considered and any other data properties that are relevant.  
-
-[ ] Correctly explaining what predictor variables are considered of interest to the question and why other predictors are being included in the model.  
-
-[ ] Correctly stating how it will be determined from the model(s) which predictors are significant and how much variation exists in the response.  
-
-Results:
-
-[ ] Statistical summaries of the variables considered in the analysis. These are appropriate/correct for the data being presented. Summaries should be univariate in nature (i.e., each variable separately) but may be supplemented by multivariate summaries if desired.  
-
-[ ] A discussion of the statistical summaries presented, that correctly comments on at least one of the centre, spread or shape of each variable in the context of the sample population. Specific emphasis should be placed on the response distribution with correct commentary on all three of centre, spread and shape. If multivariate summaries are also presented, the discussion should describe how the relationship presented is relevant to the research problem.  
-
-[ ] Presentation of the results of all statistical procedures applied to address the research question. Estimates from models should be presented with a corresponding measure of error/variability. Results of hypothesis tests should include the test statistic, the corresponding p-value and the significance level used.  
-
-[ ] A discussion of the process involved in developing a suitable model that addresses the research goal. When referencing multiple models, descriptive language is used to aid the reader in distinguishing between them (e.g. avoid labelling models as “model 1, model 2”). Variables should be referred to conversationally and not using the names presented in R. Statistical procedures used should be explicitly stated, consistent with the methods section, and correctly applied. Evidence that supports decisions made towards developing a model that addresses the research goal must be referenced explicitly and used correctly. The discussion should flow logically, beginning with an initial model based on the cited literature and ending with the result that will be interpreted in the conclusion.  
-
-Conclusion:
-
-[ ] About 1-2 paragraphs.
-
-[ ] Refer to figures/tables from the results section as needed (generally no new evidence is presented here).
-
-[ ] A formal statistical interpretation of the effect on the response of at least one of the most important/relevant predictors in the chosen model and should be correct and in the context of the data.  
-
-[ ] An informal interpretation of the model results, focusing on what the chosen model says about the relationship between predictors and response as a whole in this project. This should be consistent with the model results and in the context of the data.  
-
-[ ] A comparison between the effects suggested by the model and the effects in the literature that was summarized earlier. The comparison should correctly address whether the effects from the model are supported by or contradictory to the literature, with in-text citations directing the reader to the relevant sources.  
-
-[ ] A closing statement that highlights how the results of this study can be used to address the stated motivation from the introduction.  
-
-Figures, Tables, and References:
-
-[ ] The reference list/bibliography contains all source materials or articles mentioned in the written report. The list is well-formatted using an appropriate format (e.g., APA). In-text citations are included whenever information is summarized or mentioned from an external source (e.g. peer-reviewed article) and are in a consistent format as the reference list/bibliography.  
-
-[ ] No R code is present in the written report (e.g. code that produces tables/figures), and R output (as displayed in the R console) is not present.  
-
-[ ] Tables and figures include informative captions that cover 1) what is presented and 2) what is the key message the reader should take away. Captions should ensure that the reader does not need to have read the report itself to understand what is presented in the table/figure.  
-
-[ ] Tables and figures are well designed (visually appealing, cohesive, and valuable). The information presented in each table/figure is easy to read and understand (e.g. avoids variable names from R, legible axis labels, etc.), makes sense to be presented in a single standalone unit, and is referenced and discussed in the main report text.  
-
---------------------------------------------------------------------------------
 ```{r}
 #| echo: false
 #| include: false
@@ -75,7 +24,7 @@ Figures, Tables, and References:
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("ggplot2", "MASS", "pscl")
+packages <- c("ggplot2", "MASS", "pscl", "lmtest","GGally")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -85,6 +34,91 @@ lapply(packages, library, character.only = TRUE)
 #### Read data ####
 load(here::here("portugal.RData"))
 ```
+
+# Introduction
+
+Family size is an important demographic variable influencing the economy, public policy decisions and the society. Understanding the determinants of family size can help the economist and policymakers addressing to make better resource allocation and population sustainability. This study investigates the influence of literacy and age at marriage on family size, using data from the World Fertility Survey conducted in Portugal between 1979 and 1980. These factors were selected due to their significant associations with birth rate, as highlighted in previous research.
+
+Existing literature emphasizes the importance of socio-economic and cultural factors in shaping family size. Ahmed and Roy (2023) identified that variables such as family income, educational status, and contraceptive use significantly impact household size in Bangladesh. Their findings emphasize the role of education and socio-economic conditions, aligning with this study's focus on literacy as a determinant of family size. Vignoli et al. (2021) expanded this understanding by analyzing how educational pairings influence fertility transitions in European countries, showing that couples with higher educational attainment often have smaller families. Additionally, Bumpass and Mburugu (1977) highlighted the effects of age at marriage on family size, illustrating that marrying at very young or older ages significantly alters fertility outcomes.
+
+This study examines how literacy and age at marriage jointly affect family size in Portugal, aiming to build on and expand existing research in the field. Specifically, the research objective is to quantify the impact of these variables on family size using data from the World Fertility Survey conducted in Portugal between 1979 and 1980. The peer reviewed studies in previous paragraph highlight the importance of literacy and age at marriage in shaping family size separately. By explicitly connecting these insights, this study seeks to provide a detailed understanding of how literacy and age at marriage, influence family size in Portugal.
+
+To achieve this objective, the study uses a Poisson generalized linear model (GLM), which is a appropriated method for analyzing count data like family size. The Poisson GLM enables the modeling of relationships between predictor variables and a discrete, non-negative dependent variable. By using this method, the study aims to quantify the effects of these predictors on family size, bridging gaps identified in previous research. The application of the Poisson GLM also strengthens the validity of the findings and let the results contribute meaningfully to the study.
+
+
+# Methodology
+
+Given that our research objective is to analyze the factors influencing the number of children born, we initially considered Poisson regression as our modeling approach, as it is well-suited for count data. Since individuals have varying lengths of exposure time, we incorporated log(Months married) as an offset, effectively transforming the model into a rate-based framework, where the response variable represents the average number of children born per month.
+
+Reflecting on our research question: "How do literacy and age of marriage affect family size?" Given this focus, we determined that the variable "region" was not relevant to our study. Therefore, we excluded it from our model. Our initial model included all variables except for "region", ensuring that our analysis remained centered on the key factors influencing family size.
+
+We began by validating the assumptions of Poisson regression to ensure the appropriateness of our model. First, we confirmed that the log mean of the response variable should have a linear relationship with the predictor variables. Next, we verified the independence of observations. We also tested for equidispersion. If overdispersion was detected, we considered alternative models such as negative binomial regression to account for dispersion effects. Finally, we confirmed that our response variable is a non-negative integer counts variable.
+
+We then assessed the correlation among numerical variables to identify potential multicollinearity. For pairs of variables with a strong correlation (correlation coefficient > 0.5), we retained only one representative variable to prevent redundancy and improve model stability. This refined model, incorporating only the selected predictors, is referred to as the parent model.
+
+To refine our model, we systematically assessed the significance of each predictor variable. We generated a series of nested models, where each new model was derived by removing a single predictor from the parent model. To evaluate the impact of each predictor, we conducted likelihood ratio tests (LRTs), comparing each reduced model to the parent model. If the LRT yielded a p-value greater than 0.05, indicating that the removal of the predictor did not significantly reduce the model’s explanatory power, we considered the variable to be non-essential and excluded it from the final model.
+
+# Result
+
+The following is our final model:
+\begin{align*}
+\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
+&\beta_6 \text{M}_{30toInf}(i) + \beta_7 \text{Pregnancies}_{i} + \beta_8 \text{Literacy}_{i} + \\ &\log(\text{Months}_{i}) + \epsilon_i
+\end{align*}
+\begin{align*}
+    \text{Where} & :\\
+    \text{Children}_i & : \text{ Number of children born to the } i\text{th individual.} \\
+    M_{a\text{to} b}(i) & : \text{ Binary indicator variable, where } M_{a\text{to} b}(i) = 1 \\ & \ \  \ \text{ if the } i\text{th individual was married between ages } a \text{ and } b. \\
+    \text{Pregnancies}_i & : \text{ Total number of pregnancies experienced by the } i\text{th individual.} \\
+    \text{Literacy}_i & : \text{ Binary variable, where } \text{Literacy}_i = 1 \\ 
+    & \ \ \ \text{ indicates that the } i\text{th individual is illiterate.} \\
+    \text{Months}_i & : \text{ Total number of months since marriage.} \\
+    \beta_0, \beta_1, \dots, \beta_8 & : \text{ Regression coefficients estimated in the model.} \\
+    \epsilon_i & : \text{ Error term accounting for random deviations.}
+\end{align*}
+
+
+
+
+
+
+```{r}
+subset_data <- subset(portugal, select = c(age, monthsSinceM, pregnancies,sons))
+
+ggpairs(subset_data)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 summary(portugal)
@@ -99,29 +133,75 @@ sd(portugal$children)^2
 # Check for zero inflation.
 hist(portugal$children)
 ```
-```{r}
-m1 <- glm(children ~ literacy + ageMarried + region + age + monthsSinceM, 
-              family = poisson(link = "log"), 
-              data = portugal)
-m1_summ = cbind(est = m1$coef, confint(m1, level = 0.99))
-knitr::kable(cbind(summary(m1)$coef,exp(m1_summ)), digits = 3)
-summary(m1)
-```
 
 ```{r}
-m2 <- glm(children ~ literacy + ageMarried + region + age, 
+model_parant <- glm(children ~ ageMarried + pregnancies + literacy , 
                  family = poisson(link = "log"), 
                  data = portugal, 
                  offset = log(monthsSinceM + 0.000000000001))
-m2_summ = cbind(est = m2$coef, confint(m2, level = 0.9))
-knitr::kable(cbind(summary(m2)$coef,exp(m2_summ)), digits = 3)
-```
 
-```{r}
-m3 <- glm(children ~ literacy + ageMarried+ age, 
+model_noageMarried <- glm(children ~ pregnancies + literacy , 
                  family = poisson(link = "log"), 
                  data = portugal, 
                  offset = log(monthsSinceM + 0.000000000001))
-lmtest::lrtest(m2, m3)
+
+model_nopregnancies <- glm(children ~ ageMarried + literacy , 
+                 family = poisson(link = "log"), 
+                 data = portugal, 
+                 offset = log(monthsSinceM + 0.000000000001))
+
+model_noliteracy <- glm(children ~ ageMarried + pregnancies, 
+                 family = poisson(link = "log"), 
+                 data = portugal, 
+                 offset = log(monthsSinceM + 0.000000000001))
 ```
+
+
+```{r}
+# Define all models to be tested
+models <- list(
+  "model_noageMarried" = model_noageMarried,
+  "model_nopregnancies" = model_nopregnancies,
+  "model_noliteracy" = model_noliteracy
+)
+
+# Create an empty data frame to store p-values
+p_values <- data.frame(Model = character(), P_Value = character(), stringsAsFactors = FALSE)
+
+# Perform the likelihood ratio test for each model against model_parant
+for (name in names(models)) {
+  test_result <- lrtest(model_parant, models[[name]])  # Perform likelihood ratio test
+  
+  p_value <- as.numeric(test_result$"Pr(>Chisq)"[2])  # Extract p-value as a numeric value
+  
+  # Format the p-value to scientific notation with 3 decimal places before 'e'
+  formatted_p_value <- formatC(p_value, format = "e", digits = 3)
+  
+  # Append the result to the data frame
+  p_values <- rbind(p_values, data.frame(Model = name, P_Value = formatted_p_value))
+}
+
+# Print the final data frame containing model names and corresponding p-values
+print(p_values)
+
+
+```
+
+
+```{r}
+summary(model_parant)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 

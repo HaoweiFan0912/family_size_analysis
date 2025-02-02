@@ -1,0 +1,225 @@
+---
+title: "Chang"
+output:
+  pdf_document: default
+  html_document: default
+date: "2025-01-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# introduction
+
+Family size is a fundamental demographic variable that influences public health, economic growth, and social structures. Investigating the factors affecting family size is particularly important in regions like rural Portugal, where socioeconomic conditions in the late 1970s resembled those of developing nations. Understanding the roles of literacy, age at marriage, and regional disparities in shaping family dynamics provides valuable insights for designing effective policies targeting fertility and family planning. Studies consistently show that literacy and early marriage significantly influence reproductive behavior, impacting family size and long-term societal development.
+
+Previous research highlights the critical role of literacy in reducing family size. Bongaarts (1978) found that higher levels of education, especially among women, are associated with fewer children due to improved access to contraceptives and increased autonomy in reproductive decisions. This is particularly relevant in contexts like rural Portugal, where educational attainment was limited for many women in the 1970s. Similarly, Gupta and Dubey (2003) explored the relationship between age at marriage and fertility in rural India, demonstrating that younger marriage ages result in larger family sizes due to extended reproductive windows and societal expectations surrounding early childbearing. Another study by Weeks et al. (1986) on European fertility patterns revealed that rural families generally have more children than urban families, a trend linked to limited access to education and family planning resources in rural areas.
+
+This study aims to explore how literacy, age at marriage, and regional differences affect family size in Portugal using data from a 1979 fertility survey. By employing a generalized linear model (GLM), this research will estimate the effects of these explanatory variables and determine the variation in birth rates after accounting for known factors. The findings will not only provide insights into historical fertility trends in Portugal but also contribute to broader discussions about how socioeconomic and cultural factors influence family size globally.
+
+
+
+
+# method 
+
+
+The primary statistical model used in this analysis is the Poisson regression model, a type of generalized linear model (GLM) designed for count data. Since the response variable, the number of children (family size), is a non-negative integer, the Poisson regression is an appropriate choice. The model assumes that the response variable follows a Poisson distribution and uses a log-link function, which ensures that the predicted values remain positive. In cases where the data exhibit overdispersion (i.e., when the variance exceeds the mean), alternative models such as the quasi-Poisson regression or negative binomial regression will be considered to account for the additional variability and provide more robust estimates. These models are particularly suited for count data and allow for greater flexibility when the standard Poisson model's assumptions are violated.
+
+The Poisson regression model includes several predictors relevant to the research question: literacy, age at marriage, region, age, and months since marriage. Literacy is a key variable of interest, as it has been shown in prior studies to significantly influence family size by affecting access to education, contraception, and reproductive decision-making. Age at marriage is another critical predictor, as earlier marriages often lead to larger family sizes due to extended reproductive windows. Regional differences are included to capture variations in socio-economic conditions, cultural norms, and access to family planning resources that may influence fertility behavior. Age is a continuous variable included to account for biological and temporal factors related to fertility, while months since marriage provides a temporal dimension, representing the duration of the marital union and its natural correlation with childbearing opportunities. These predictors are included to both address the research question and control for confounding effects, ensuring that the model provides accurate and interpretable results.
+
+The significance of each predictor will be assessed using the Wald test, which evaluates the z-values and p-values for the regression coefficients. Predictors with p-values below 0.05 will be considered statistically significant. The overall fit of the model will be evaluated using metrics such as deviance and Akaike Information Criterion (AIC), with comparisons between models guiding the selection of the best-fitting approach. To assess variation in the response variable (family size), the proportion of variability explained by the model will be calculated as , providing an estimate of how much of the variation in family size is accounted for by the predictors. Additionally, residual deviance will be examined for overdispersion, with alternative models such as the quasi-Poisson or negative binomial regression used if significant residual variation remains. This systematic approach ensures that the chosen model is both statistically appropriate and aligned with the research goal of identifying the factors influencing family size while accounting for variability in birth rates.
+
+
+# Result
+
+```{r, echo=FALSE}
+library(MASS)  
+library(ggplot2)
+load("portugal.RData")
+```
+```{r}
+summary(portugal)
+
+# Frequency distribution of literacy levels
+table(portugal$literacy)
+
+```
+
+
+```{r}
+
+# Bar plot of ageMarried categories
+library(ggplot2)
+ggplot(portugal, aes(x = ageMarried)) +
+  geom_bar(fill = "skyblue") +
+  theme_minimal() +
+  labs(title = "Distribution of Age Married Categories", x = "Age Married", y = "Count")
+
+# Boxplot of children by literacy
+ggplot(portugal, aes(x = literacy, y = children)) +
+  geom_boxplot(fill = "lightgreen") +
+  theme_minimal() +
+  labs(title = "Number of Children by Literacy", x = "Literacy", y = "Children")
+
+
+
+
+library(tidyverse)
+
+
+# Age vs. Number of Children: Scatterplot with Regression Line
+ggplot(portugal, aes(x = age, y = children, color = literacy)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  theme_minimal() +
+  labs(title = "Relationship Between Age and Number of Children",
+       x = "Age",
+       y = "Number of Children",
+       color = "Literacy")
+
+
+ggplot(portugal, aes(x = ageMarried, y = children, fill = literacy)) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  facet_wrap(~region) +
+  theme_minimal() +
+  labs(title = "Average Number of Children by Age Married and Literacy",
+       x = "Age Married",
+       y = "Average Number of Children",
+       fill = "Literacy")
+
+
+ggplot(portugal, aes(x = pregnancies, fill = literacy)) +
+  geom_histogram(aes(y = ..density..), binwidth = 1, color = "black", alpha = 0.6) +
+  geom_density(alpha = 0.4) +
+  theme_minimal() +
+  labs(title = "Distribution of Number of Pregnancies by Literacy",
+       x = "Number of Pregnancies",
+       y = "Density",
+       fill = "Literacy")
+
+
+ggplot(portugal, aes(x = ageMarried, y = children, fill = literacy)) +
+  geom_violin(trim = FALSE, scale = "width", alpha = 0.7) +
+  geom_jitter(shape = 1, color = "black", width = 0.2, alpha = 0.6) +
+  theme_minimal() +
+  labs(title = "Distribution of Number of Children by Age Married and Literacy",
+       x = "Age Married",
+       y = "Number of Children",
+       fill = "Literacy")
+
+
+
+```
+
+
+$$\log(\text{number of children}_i) = \boldsymbol{X_i\beta} + \log(\text{years married}_i)$$
+for the $i^{th}$ woman.
+
+
+We use Poisson regression, where our response (number of children had per year) is linked to a linear combination of covariates with a log link. Our offset is log(year married), making this a rate model where we will interpret our response as children per year. Our covariates are age married (`ageMarried`, categorical with levels 0to15, 15to18, 18to22...etc and 15to18 is the reference level), ethnicity (`ethnicity`, categorical with levels Fijian, etc., Fijian is the reference category), if the woman is literate (`literacy`, categorical with levels yes and no, yes is the reference level) and urban (`urban`, categorical with levels rural, suva and urbanOther, rural is the reference level).
+
+
+
+
+```{r}
+portugal$monthsSinceM=portugal$monthsSinceM+0.01
+model1 <- glm(
+  formula = children ~ literacy + ageMarried + region + age, 
+  family = poisson(link = "log"), 
+  data = portugal, 
+  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
+)
+
+# Display the summary of the model
+summary(model1)
+```
+```{r}
+logRateMat = cbind(est=model1$coef, confint(model1 , level=0.99))
+knitr::kable(cbind(
+    summary(model1 )$coef, 
+    exp(logRateMat)), 
+  digits=3)
+```
+
+
+
+```{r}
+model2 <- glm(
+  formula = children ~ ageMarried + region + age, 
+  family = poisson(link = "log"), 
+  data = portugal, 
+  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
+)
+
+# Display the summary of the model
+summary(model2)
+```
+
+
+```{r}
+lmtest::lrtest(model1, model2)
+```
+
+
+```{r}
+model3 <- glm(
+  formula = children ~ literacy+ region + age, 
+  family = poisson(link = "log"), 
+  data = portugal, 
+  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
+)
+
+# Display the summary of the model
+summary(model3)
+```
+
+
+```{r}
+lmtest::lrtest(model1, model3)
+```
+
+
+
+```{r}
+#install.packages("glmmTMB")
+library(glmmTMB)
+final = glmmTMB::glmmTMB(children ~ offset(log(monthsSinceM))+literacy + ageMarried + region + age,family=nbinom2(link='log'), data=portugal) 
+summary(final)$coef
+
+
+
+```
+
+```{r}
+knitr::kable(rbind(confint(final)[,c(3,1,2)],
+sd = 1/sqrt(confint(final, parm='sigma')[,c(3,2,1)])),caption="result")
+```
+
+
+
+
+
+# Conclusion
+
+
+Literacy plays a significant role in family size, with illiterate individuals having larger families.
+Age at marriage has a mixed effect, with younger marriages (15–18) leading to smaller family sizes, while older marriages (25–30 or 30+) result in higher family sizes.
+Regional differences are significant, with urban areas like Lisbon and regions with larger populations associated with smaller family sizes compared to rural areas.
+Age has a strong negative relationship with family size, suggesting that older individuals tend to have fewer children.
+
+
+
+
+
+
+
+
+
+
+# reference
+
+Fuller, B., Dellagnelo, L., Strath, A., Bastos, E. S. B., Maia, M. H., de Matos, K. S. L., ... & Vieira, S. L. (1999). How to raise children's early literacy? The influence of family, teacher, and classroom in northeast Brazil. Comparative education review, 43(1), 1-35.
+
+
+
