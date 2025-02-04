@@ -24,7 +24,7 @@ bibliography: references.bib
 #### Workspace setup ####
 set.seed(912)
 # List of necessary packages
-packages <- c("ggplot2", "MASS", "pscl", "lmtest","GGally")
+packages <- c("ggplot2", "MASS", "pscl", "lmtest","GGally", "knitr")
 # Install missing packages
 missing_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
 install.packages(missing_packages)
@@ -36,34 +36,55 @@ load(here::here("portugal.RData"))
 ```
 
 # Introduction
-
 Family size is an important demographic variable influencing the economy, public policy decisions and the society. Understanding the determinants of family size can help the economist and policymakers addressing to make better resource allocation and population sustainability. This study investigates the influence of literacy and age at marriage on family size, using data from the World Fertility Survey conducted in Portugal between 1979 and 1980. These factors were selected due to their significant associations with birth rate, as highlighted in previous research.
 
-Existing literature emphasizes the importance of socio-economic and cultural factors in shaping family size. Ahmed and Roy (2023) identified that variables such as family income, educational status, and contraceptive use significantly impact household size in Bangladesh. Their findings emphasize the role of education and socio-economic conditions, aligning with this study's focus on literacy as a determinant of family size. Vignoli et al. (2021) expanded this understanding by analyzing how educational pairings influence fertility transitions in European countries, showing that couples with higher educational attainment often have smaller families. Additionally, Bumpass and Mburugu (1977) highlighted the effects of age at marriage on family size, illustrating that marrying at very young or older ages significantly alters fertility outcomes.
+Existing literature emphasizes the importance of socio-economic and cultural factors in shaping family size. @ahmed2023factors found that variables such as family income, educational status, and contraceptive use significantly impact household size in Bangladesh. Their findings emphasize the role of education and socio-economic conditions, which align with this study's focus on literacy as a determinant of family size. @nitsche2021educational expanded this understanding by analyzing how educational pairings influence fertility transitions in European countries. The research shows that couples with higher educational attainment often have smaller families. Additionally, @bumpass1977age highlighted the effects of age at marriage on family size, illustrating that marrying at very young or older ages significantly alters fertility outcomes.
 
-This study examines how literacy and age at marriage jointly affect family size in Portugal, aiming to build on and expand existing research in the field. Specifically, the research objective is to quantify the impact of these variables on family size using data from the World Fertility Survey conducted in Portugal between 1979 and 1980. The peer reviewed studies in previous paragraph highlight the importance of literacy and age at marriage in shaping family size separately. By explicitly connecting these insights, this study seeks to provide a detailed understanding of how literacy and age at marriage, influence family size in Portugal.
-
-To achieve this objective, the study uses a Poisson generalized linear model (GLM), which is a appropriated method for analyzing count data like family size. The Poisson GLM enables the modeling of relationships between predictor variables and a discrete, non-negative dependent variable. By using this method, the study aims to quantify the effects of these predictors on family size, bridging gaps identified in previous research. The application of the Poisson GLM also strengthens the validity of the findings and let the results contribute meaningfully to the study.
+This study examines how literacy and age at marriage jointly affect family size in Portugal, aiming to providing a more detailed understanding of these relationships base on existing researches. To achieve this objective, the study uses a Poisson generalized linear model (GLM), which is a appropriated method for analyzing count data like family size. The Poisson GLM enables the modeling of relationships between predictor variables and a discrete, non-negative dependent variable. By using this method, the study aims to quantify the effects of these predictors on family size, bridging gaps identified in previous research. The application of the Poisson GLM also strengthens the validity of the findings and let the results contribute meaningfully to the study.
 
 
 # Methodology
 
-Given that our research objective is to analyze the factors influencing the number of children born, we initially considered Poisson regression as our modeling approach, as it is well-suited for count data. Since individuals have varying lengths of exposure time, we incorporated log(Months married) as an offset, effectively transforming the model into a rate-based framework, where the response variable represents the average number of children born per month.
+Given that our research objective is to analyze the age- and literacy-related factors influencing family size, we considered using Poisson regression as our modeling approach, as it is well-suited for count data. Reflecting on our research question, we excluded any variables that were not relevant to our study in the dataset from our model. To adjust for exposure effects in our Poisson model, we incorporate the time-related variable with the largest range as an offset, provided that it represents a meaningful denominator for the count data. We then assessed the correlation among numerical variables to identify potential multicollinearity. For pairs of variables with a strong correlation (correlation coefficient > 0.5), we retained only one representative variable to prevent redundancy and improve model stability. This refined model, incorporating only the selected predictors, is referred to as the parent model.  
 
-Reflecting on our research question: "How do literacy and age of marriage affect family size?" Given this focus, we determined that the variable "region" was not relevant to our study. Therefore, we excluded it from our model. Our initial model included all variables except for "region", ensuring that our analysis remained centered on the key factors influencing family size.
+To refine our model, we systematically assessed the significance of each predictor variable by constructing a series of successive models, where each successive model was derived by removing a single predictor from the parent model. To evaluate the impact of each predictor, we conducted likelihood ratio tests (LRTs) with a 95% confidence interval. In this case, our hypothesis test was set as follows: ($H_0 : \beta_i = 0, \text{ } H_1 : \beta_i \neq 0$), where $\beta_i$ represents the coefficient of the predictor variable being tested for significance. The test statistic for LRT is given by: $T =  -2 \left( \ln L(\hat{\theta}_0) - \ln L(\hat{\theta}_1) \right) \sim \chi^2_d$
+, where $d = \dim(\hat{\theta}_1) - \dim(\hat{\theta}_0)$ denotes the difference in the number of parameters between the parent and nested models, and $\hat{\theta}_0$ and $\hat{\theta}_1$ represent the parameter vectors under the nested and parent models, respectively. If the LRT yielded a p-value greater than 0.05, indicating that the removal of the predictor did not significantly reduce the model’s explanatory power, we considered the variable to be non-essential and excluded it from the final model.  
 
-We began by validating the assumptions of Poisson regression to ensure the appropriateness of our model. First, we confirmed that the log mean of the response variable should have a linear relationship with the predictor variables. Next, we verified the independence of observations. We also tested for equidispersion. If overdispersion was detected, we considered alternative models such as negative binomial regression to account for dispersion effects. Finally, we confirmed that our response variable is a non-negative integer counts variable.
-
-We then assessed the correlation among numerical variables to identify potential multicollinearity. For pairs of variables with a strong correlation (correlation coefficient > 0.5), we retained only one representative variable to prevent redundancy and improve model stability. This refined model, incorporating only the selected predictors, is referred to as the parent model.
-
-To refine our model, we systematically assessed the significance of each predictor variable. We generated a series of nested models, where each new model was derived by removing a single predictor from the parent model. To evaluate the impact of each predictor, we conducted likelihood ratio tests (LRTs), comparing each reduced model to the parent model. If the LRT yielded a p-value greater than 0.05, indicating that the removal of the predictor did not significantly reduce the model’s explanatory power, we considered the variable to be non-essential and excluded it from the final model.
+Next, we validated the assumptions of Poisson regression to ensure the appropriateness of our model. First, we checked whether the log-mean of the response variable exhibited a linear relationship with the predictor variables by examining the QQ-plot to see if the points closely followed the reference line. Next, we verified the independence of observations. To assess equidispersion, we calculated the Overdispersion Ratio: $\frac{D}{\text{df}_{\text{res}}}$, where D represents the deviance of the model and $\text{df}_{\text{res}}$ is the residual degrees of freedom. If the Overdispersion Ratio exceeded 1, we concluded that overdispersion was present in the data and considered alternative models, such as negative binomial regression, to account for dispersion effects. Finally, we confirmed that our response variable consisted of non-negative integer counts, ensuring its suitability for Poisson regression.  
 
 # Result
 
-The following is our final model:
+@tbl-varibale presents the statistical summary of all important variables. It is shown that the distribution of The Number of Children is right-skewed, with a median and mean of 2. The interquartile range (1 to 3) shows that half of the population falls within this range, while the maximum value of 17 suggests high variability. The majority of individuals marry between the ages of 18 and 25, with the highest concentration in the 22–25 age group (1,468 individuals), followed by those aged 20–22 (1,126 individuals). Regarding the duration of marriage, the range extends from 0 months to 431 months. The median marriage duration is 148 months, with a mean of 155.2 months. However, the slightly higher mean contributes to a mild right-skewed distribution. The number of pregnancies follows a similar pattern, with a median and mean of 2. However, the data range is substantial, spanning from 0 to a maximum of 16, resulting in a long-tailed distribution with right skewness. In terms of literacy, the vast majority of the population is literate (4,567 individuals), whereas only 581 individuals are illiterate.
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-varibale
+#| tbl-cap: "Summary of Key Variables"
+
+data_selec <- dplyr::select(portugal, children, monthsSinceM, pregnancies, ageMarried, literacy)
+summary_df <- data.frame(
+  "Number of Children" = c("Min: 0", "1st Qu: 1", "Median: 2", "Mean: 2", "3rd Qu: 3", "Max: 17", " "),
+  "Months Since Marriage" = c("Min: 0.0", "1st Qu: 73.0", "Median: 148.0", "Mean: 155.2", "3rd Qu: 230.0", "Max: 431.0", " "),
+  "Number of Pregnancies" = c("Min: 0", "1st Qu: 1", "Median: 2", "Mean: 2", "3rd Qu: 3", "Max: 16", " "),
+  "Count by Age at Marriage" = c("At 0-15: 52",
+                         "At 15-18: 452",
+                         "At 18-20: 910",
+                         "At 20-22: 1126",
+                         "At 22-25: 1468",
+                         "At 25-30: 923",
+                         "At over 30: 217"),
+  "Count by Literate/Illiterate" = c("Literate: 4567", "Illiterate: 581", " ", " ", " ", " ", " ")
+  ,check.names = FALSE
+)
+kable(summary_df)
+```
+
+Initially, our model included all relevant variables:
 \begin{align*}
-\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
-&\beta_6 \text{M}_{30toInf}(i) + \beta_7 \text{Pregnancies}_{i} + \beta_8 \text{Literacy}_{i} + \\ &\log(\text{Months}_{i}) + \epsilon_i
+\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\
+&\beta_6 \text{M}_{30toInf}(i) + \beta_7 \text{Pregnancies}_{i} + \beta_8 \text{Literacy}_{i} + \\ & \beta_9 \text{Age}_{i} + \beta_{10} \text{Sons}_{i} + \beta_{11} \text{Months}_{i} + \epsilon_i
 \end{align*}
 \begin{align*}
     \text{Where} & :\\
@@ -72,69 +93,44 @@ The following is our final model:
     \text{Pregnancies}_i & : \text{ Total number of pregnancies experienced by the } i\text{th individual.} \\
     \text{Literacy}_i & : \text{ Binary variable, where } \text{Literacy}_i = 1 \\ 
     & \ \ \ \text{ indicates that the } i\text{th individual is illiterate.} \\
+    \text{Age}_{i} & : \text{ The age of the ith observation at the time of data collection.} \\
+    \text{Sons}_{i} & : \text{ The number of sons the ith observation has.} \\
     \text{Months}_i & : \text{ Total number of months since marriage.} \\
-    \beta_0, \beta_1, \dots, \beta_8 & : \text{ Regression coefficients estimated in the model.} \\
+    \beta_0, \beta_1, \dots, \beta_11 & : \text{ Regression coefficients estimated in the model.} \\
     \epsilon_i & : \text{ Error term accounting for random deviations.}
 \end{align*}
 
+Through @tbl-varibale, we find that the range of "months since marriage" in the sample is quite large, spanning from 0 to 437 months indicating individuals have varying lengths of exposure time. We incorporated log(Months married) as an offset to reduce potential biases and scale differences that could impact our model's estimates, effectively transforming the model into a rate-based framework, where the response variable represents the average number of children born per month. Furthermore, according to @fig-cor, we observe a strong correlation between "months since marriage" and "age", as well as between the "number of pregnancies" and the "number of sons". In order to avoid multicollinearity issues, we exclude age and sons from the model to prevent redundant information and potential overfitting, ensuring more reliable and interpretable results. At this point, we have obtained a new model. For the convenience of comparing it with other nested models later, we refer to it as the parent model：
 
+\begin{align*}
+\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
+&\beta_6 \text{M}_{30toInf}(i) + \beta_7 \text{Pregnancies}_{i} + \beta_8 \text{Literacy}_{i} + \\ &\log(\text{Months}_{i}) + \epsilon_i
+\end{align*}
+\begin{align*}
+\text{Note: We continue with the same notation from the first model.}
+\end{align*}
 
-
-
-
-```{r}
-subset_data <- subset(portugal, select = c(age, monthsSinceM, pregnancies,sons))
-
-ggpairs(subset_data)
+```{r, fig.pos="H", fig.height=5}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: fig-cor
+#| fig-cap: "Correlations Between Numerical Varibales"
+data_cor <- dplyr::select(portugal, age, sons, monthsSinceM, pregnancies)
+names_ref <- c("Age", "Number of Sons", "Months Since Marriage", "Number of Pregnancies")
+colnames(data_cor) <- names_ref
+ggpairs(data_cor) + theme(text = element_text(size = 8))
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Next, we generated a series of nested models, where each new model was derived by removing a single predictor from the parent model. To ensure that our model was not overfitted and to verify that each predictor had a significant impact, we conducted a likelihood ratio test with a 95% confidence interval. The Likelihood Ratio Test (LRT) results (shown in @tbl-lrt) indicate that removing any of the three predictors— "Age at Marriage", "Number of Pregnancies", and "Literate/Illiterate"— significantly reduces the model's fit. The P-values for all three models (model without "Age at Marriage" = 1.988e-05, model without "Number of Pregnancies"= 0.000e+00, and model without "Literate/Illiterate" = 3.771e-15) are far below 0.05, confirming their statistical significance. Therefore, our final model is the parent model.
 
 ```{r}
-summary(portugal)
-```
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-lrt
+#| tbl-cap: "Summary of Likelyhood Ratio Tests"
 
-```{r}
-# Check for overdispersion.
-mean(portugal$children)
-sd(portugal$children)^2
-```
-```{r}
-# Check for zero inflation.
-hist(portugal$children)
-```
-
-```{r}
 model_parant <- glm(children ~ ageMarried + pregnancies + literacy , 
                  family = poisson(link = "log"), 
                  data = portugal, 
@@ -154,16 +150,15 @@ model_noliteracy <- glm(children ~ ageMarried + pregnancies,
                  family = poisson(link = "log"), 
                  data = portugal, 
                  offset = log(monthsSinceM + 0.000000000001))
-```
 
-
-```{r}
 # Define all models to be tested
 models <- list(
   "model_noageMarried" = model_noageMarried,
   "model_nopregnancies" = model_nopregnancies,
   "model_noliteracy" = model_noliteracy
 )
+
+
 
 # Create an empty data frame to store p-values
 p_values <- data.frame(Model = character(), P_Value = character(), stringsAsFactors = FALSE)
@@ -173,35 +168,85 @@ for (name in names(models)) {
   test_result <- lrtest(model_parant, models[[name]])  # Perform likelihood ratio test
   
   p_value <- as.numeric(test_result$"Pr(>Chisq)"[2])  # Extract p-value as a numeric value
-  
+  stat <- round(as.numeric(test_result$"Chisq"[2]),3)
   # Format the p-value to scientific notation with 3 decimal places before 'e'
   formatted_p_value <- formatC(p_value, format = "e", digits = 3)
   
   # Append the result to the data frame
-  p_values <- rbind(p_values, data.frame(Model = name, P_Value = formatted_p_value))
+  p_values <- rbind(p_values, data.frame(Model = name, P_Value = formatted_p_value, Statistics = stat))
 }
 
+col_name <- c("Model without 'Age at Marriage'", "Model without 'Number of Pregnancies'", "Model without 'Literate/Illiterate'")
+
+p_values$Model <- col_name
+
+
 # Print the final data frame containing model names and corresponding p-values
-print(p_values)
+kable(p_values)
 
 
 ```
+
+
+Finally, we tested the assumptions of our model. First, the overdispersion ratio of 0.7018129 indicates that there is no significant overdispersion in the data, meaning that the variance is not substantially larger than the mean. This suggests that the Poisson model is appropriate, as the assumption of equidispersion holds. Then, according to the Q-Q plot (shown in @fig-qqplot), most of the residuals closely follow the reference line, indicating that the deviance residuals are approximately normally distributed. This suggests that the Poisson model is a reasonable fit for the data and confirms that the model satisfies the assumption that the log-mean of the response variable has a linear relationship with the predictor variables. Additionally, the assumptions that the observations are independent and that the response variable consists of positive integers are straightforward.
+
+```{r, fig.pos="H"}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: fig-qqplot
+#| fig-cap: "QQ-Plot of The Final Model"
+
+residuals_dev <- residuals(model_parant, type = "deviance")
+
+
+qqnorm(residuals_dev, main = "")
+qqline(residuals_dev, col = "red", lwd = 2) 
+```
+
+
+
+
 
 
 ```{r}
-summary(model_parant)
+#| warning: false
+#| include: false
+#| echo: false
+#| message: false
+overdispersion_ratio <- model_parant$deviance / model_parant$df.residual
+print(overdispersion_ratio)
 ```
+The following is our final model:
+\begin{align*}
+\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
+&\beta_6 \text{M}_{30toInf}(i) + \beta_7 \text{Pregnancies}_{i} + \beta_8 \text{Literacy}_{i} + \\ &\log(\text{Months}_{i}) + \epsilon_i
+\end{align*}
+\begin{align*}
+    \text{Where} & :\\
+    \text{Children}_i & : \text{ Number of children born to the } i\text{th individual.} \\
+    M_{a\text{to} b}(i) & : \text{ Binary indicator variable, where } M_{a\text{to} b}(i) = 1 \\ & \ \  \ \text{ if the } i\text{th individual was married between ages } a \text{ and } b. \\
+    \text{Pregnancies}_i & : \text{ Total number of pregnancies experienced by the } i\text{th individual.} \\
+    \text{Literacy}_i & : \text{ Binary variable, where } \text{Literacy}_i = 1 \\ 
+    & \ \ \ \text{ indicates that the } i\text{th individual is illiterate.} \\
+    \text{Months}_i & : \text{ Total number of months since marriage.} \\
+    \beta_0, \beta_1, \dots, \beta_8 & : \text{ Regression coefficients estimated in the model.} \\
+    \epsilon_i & : \text{ Error term accounting for random deviations.}
+\end{align*}
 
+Its summary shown in @tbl-msum:
 
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: tbl-msum
+#| tbl-cap: "Summary of The Final Model"
 
-
-
-
-
-
-
-
-
-
-
+logRateMat = cbind(est=model_parant$coef, confint(model_parant, level=0.99))
+knitr::kable(cbind(
+    summary(model_parant)$coef, 
+    exp(logRateMat)), 
+  digits=3)
+```
 
