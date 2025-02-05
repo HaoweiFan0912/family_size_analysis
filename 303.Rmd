@@ -123,77 +123,98 @@ We use Poisson regression, where our response (number of children had per year) 
 
 
 ```{r}
-portugal$monthsSinceM=portugal$monthsSinceM+0.01
-model1 <- glm(
-  formula = children ~ literacy + ageMarried + region + age, 
-  family = poisson(link = "log"), 
-  data = portugal, 
-  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
-)
 
-# Display the summary of the model
-summary(model1)
-```
-```{r}
-logRateMat = cbind(est=model1$coef, confint(model1 , level=0.99))
-knitr::kable(cbind(
-    summary(model1 )$coef, 
-    exp(logRateMat)), 
-  digits=3)
+portugal$logYearsMarried = log(pmax(1, portugal$monthsSinceM)/12)
+portugal$ageMarried = relevel(portugal$ageMarried, "18to20")
+fijiFit = glm(children ~ offset(logYearsMarried) + literacy +
+   ageMarried, data = portugal, family = poisson)
+
+knitr::kable(summary(fijiFit)$coef, digits = 3)
 ```
 
-
-
 ```{r}
-model2 <- glm(
-  formula = children ~ ageMarried + region + age, 
-  family = poisson(link = "log"), 
-  data = portugal, 
-  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
-)
-
-# Display the summary of the model
-summary(model2)
+fijiFitCI = as.data.frame(exp(confint(fijiFit)[-1,]))
+fijiFitCI$level = gsub(paste(names(fijiFit$xlevels), collapse='|'),
+   "", rownames(fijiFitCI))
+fijiFitCI$variable=unlist(strsplit(rownames(fijiFitCI),fijiFitCI$level))
+fijiFitCI$x = 1:nrow(fijiFitCI)
+fijiFitCI$cex = sqrt(1/apply(log(fijiFitCI[,1:2]),1,diff))
+forXaxis = tapply(fijiFitCI$x, fijiFitCI$variable, mean)
+#你可以多打几行
+fijiFitCI[1:3,]
 ```
-
-
 ```{r}
-lmtest::lrtest(model1, model2)
-```
+matplot(fijiFitCI[,1:2], type='n',
+   xaxt='n', bty='n', xaxt='n',
+   log='y', ylab='RR')
 
+segments(fijiFitCI$x, fijiFitCI[,1],
+   fijiFitCI$x, fijiFitCI[,2])
 
-```{r}
-model3 <- glm(
-  formula = children ~ literacy+ region + age, 
-  family = poisson(link = "log"), 
-  data = portugal, 
-  offset = log(monthsSinceM)  # Log-transform monthsSinceM as the offset
-)
+ points(fijiFitCI$x,
+   exp(fijiFit$coef[-1]), pch=15,
+   cex = fijiFitCI$cex, col = '#00000030')
+ 
+mtext(fijiFitCI$level, 1, at=fijiFitCI$x,
+   las=3, line=-1)
 
-# Display the summary of the model
-summary(model3)
+mtext(names(forXaxis), 1, at=forXaxis,
+   line=-2)
+abline(h=1, lty=3)
+
 ```
 
 
 ```{r}
-lmtest::lrtest(model1, model3)
+library('glmmTMB')
+fijiNB = glmmTMB(children ~ offset(logYearsMarried) + literacy +
+   ageMarried, data = portugal,family=nbinom2)
+```
+
+
+```{r}
+knitr::kable(
+   rbind(confint(fijiNB)[1:7,c(3,1,2)],
+ sd=1/sqrt(confint(fijiNB, parm='sigma'))[c(3,1,2)]), digits=3)
 ```
 
 
 
 ```{r}
-#install.packages("glmmTMB")
-library(glmmTMB)
-final = glmmTMB::glmmTMB(children ~ offset(log(monthsSinceM))+literacy + ageMarried + region + age,family=nbinom2(link='log'), data=portugal) 
-summary(final)$coef
-
-
-
+fijiFitCI = as.data.frame(exp(confint(fijiFit)[-1,]))
+fijiFitCI$level = gsub(paste(names(fijiFit$xlevels), collapse='|'),
+   "", rownames(fijiFitCI))
+fijiFitCI$variable=unlist(strsplit(rownames(fijiFitCI),fijiFitCI$level))
+fijiFitCI$x = 1:nrow(fijiFitCI)
+fijiFitCI$cex = sqrt(1/apply(log(fijiFitCI[,1:2]),1,diff))
+forXaxis = tapply(fijiFitCI$x, fijiFitCI$variable, mean)
+#你可以多打几行
+fijiFitCI[1:3,]
 ```
 
+
+
+
 ```{r}
-knitr::kable(rbind(confint(final)[,c(3,1,2)],
-sd = 1/sqrt(confint(final, parm='sigma')[,c(3,2,1)])),caption="result")
+ matplot(fijiFitCI[,1:2], type='n',
+   xaxt='n', bty='n', xaxt='n',
+   log='y', ylab='RR')
+
+segments(fijiFitCI$x, fijiFitCI[,1],
+   fijiFitCI$x, fijiFitCI[,2])
+
+points(fijiFitCI$x,
+   exp(fijiFit$coef[-1]), pch=15,
+   cex = fijiFitCI$cex, col = '#00000030')
+
+mtext(fijiFitCI$level, 1, at=fijiFitCI$x,
+   las=3, line=-1)
+
+ mtext(names(forXaxis), 1, at=forXaxis,
+   line=-2)
+ abline(h=1, lty=3)
+
+
 ```
 
 
