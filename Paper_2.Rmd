@@ -41,10 +41,33 @@ load(here::here("portugal.RData"))
 
 
 # Methodology
+Since our objective is to study family size, there is no direct variable in the dataset that represents this concept. Therefore, we assume that each household in the sample has the same number of elder family members, including parents and grandparents. This assumption allows us to use "Number of Children" as a proxy for family size and treat it as our response variable.Since "Number of Children" is clearly a positive integer, we first considered using Poisson regression as our modeling approach. However, since each observation has a different exposure time, we need to ensure the fairness of the model by making the count data from different observational units comparable. To achieve this, we introduce an offset variable to represent the exposure level. Specifically, we divide "Number of Children" by this offset, transforming our response variable into a ratio-based measure, ensuring that the model reasonably explains the event occurrence under a per-unit exposure framework.
 
+Next, we validated the assumptions of Poisson regression to ensure the appropriateness of our model. First, we checked whether the log-mean of the response variable exhibited a linear relationship with the predictor variables by examining the QQ-plot to see if the points closely followed the reference line. Next, we verified the independence of observations. To assess equidispersion, we calculated the dispersion parameter: $\hat{\phi} = \frac{\sum (\text{Pearson residuals})^2}{\text{Degrees of Freedom for Pearson Residuals}}$. If $\hat{\phi}$ significantly exceeded 1, we concluded that overdispersion was present in the data and considered alternative models, such as negative binomial regression. Finally, we confirmed that our response variable consisted of non-negative integer counts, ensuring its suitability for Poisson regression.  
 
+Upon validating the model’s applicability, we conducted a hypothesis test to evaluate the statistical significance of the predictor variables and assess the robustness of the model’s predictions. The hypotheses are formulated as follows:
 
+\begin{align*}
+H_0 : \beta_i = 0, \quad H_1 : \beta_i \neq 0
+\end{align*}
 
+where $\beta_i$ denotes the regression coefficient of the predictor variable under examination.
+
+The statistical inference is based on the z-statistic, computed as:
+
+\begin{align*}
+z = \frac{\hat{\beta}_i}{\text{SE}(\hat{\beta}_i)} \sim N(0,1)
+\end{align*}
+
+where $\hat{\beta}_i$ represents the maximum likelihood estimate of $\beta_i$, and $\text{SE}(\hat{\beta}_i)$ is the standard error of the estimated coefficient.
+
+To quantify the uncertainty associated with the parameter estimates, the 95% confidence interval (CI) for the exponentiated coefficient, which corresponds to the rate ratio in Poisson regression, is given by:
+
+\begin{align*}
+\exp(\text{CI}_{95\%}) = \left[ \exp\left(\hat{\beta}_i - 1.96 \times \text{SE}(\hat{\beta}_i)\right), \exp\left(\hat{\beta}_i + 1.96 \times \text{SE}(\hat{\beta}_i)\right) \right]
+\end{align*}
+
+If the confidence interval excludes 1, it indicates that the predictor variable exerts a statistically significant influence on the response variable at the 95% confidence level. This suggests that changes in the predictor are associated with changes in the expected count of the response variable, supporting its relevance in the model.
 
 
 # Result
@@ -56,6 +79,7 @@ load(here::here("portugal.RData"))
 #| include: false
 summary(portugal)
 ```
+
 ```{r}
 #| warning: false
 #| message: false
@@ -78,7 +102,7 @@ Recall our research objective: To explore the impact of literacy and age at marr
 
 It is important to note that, since the link function of the Poisson distribution is log, directly taking log(0) when constructing the offset would result in negative infinity, which could affect the model's stability and accuracy. Therefore, when constructing the offset, we ensured that the number of months of marriage for each observation was at least 1 (even if the original data contained 0s, this adjustment prevents the log(0) issue). Additionally, we divided the months by 12 to convert the time scale to years, making the model's time representation more reasonable. By incorporating the offset, the original response variable (the number of children) is essentially transformed into a rate-based metric in the model. This means that we are now estimating the fertility rate per unit of time (e.g., per year) rather than the total number of children. With the logarithmic link function, this rate is expressed in logarithmic form, allowing the model’s results to be interpreted as the logarithm of the average number of children per year after marriage.
 
-Furthermore, based on @tbl-variable, we observed that the majority of our sample got married between the ages of 22 and 25. Therefore, we set the base level for the "Age at Marriage" variable to the "22 to 25 years" group. This decision allows us to interpret the effects of other age-at-marriage categories relative to the most common marriage age group in our sample.
+Furthermore, based on @tbl-varibale, we observed that the majority of our sample got married between the ages of 22 and 25. Therefore, we set the base level for the "Age at Marriage" variable to the "22 to 25 years" group. This decision allows us to interpret the effects of other age-at-marriage categories relative to the most common marriage age group in our sample.
 
 Thus, our model is:
 
@@ -101,6 +125,7 @@ Thus, our model is:
 
 
 ```{r}
+#| include: false
 portugal$ageMarried = relevel(portugal$ageMarried, "22to25")
 possi_model <- glm(children ~ ageMarried + literacy , 
                  family = poisson(link = "log"), 
@@ -138,9 +163,7 @@ possi_model$df.residual
 print(overdispersion_ratio)
 ```
 
-
-
-@fig-rr illustrates the relative risk between different variable groups and their reference group. Compared to individuals who married between ages 22-25 (reference group), those who married at 0-15 or above 30 may have a slightly higher number of children (relative risk), but due to their wide confidence intervals covering 1, the reliability of this estimate is low. In contrast, those who married between 15-18 and 18-20 are more likely to have more children than reference group, as their confidence intervals are relatively narrow and do not include 1, indicating a stronger association. For individuals who married between 20-22 or 25-30, the number of children appears to remain nearly unchanged compared to the reference group, but since their confidence intervals include 1, no definitive conclusion can be drawn. For literacy, compared to the reference group (literacy), the illiteracy group has more children, and the confidence interval is very narrow, implying that there is a high probability that the illiteracy group has more children than the literacy group.
+@fig-rr illustrates the relative risk with 95% confident interval between different variable groups and their reference group. Compared to individuals who married between ages 22-25 (reference group), those who married at 0-15 or above 30 may have a slightly higher number of children (relative risk), but due to their wide confidence intervals covering 1, the reliability of this estimate is low. In contrast, those who married between 15-18 and 18-20 are more likely to have more children than reference group, as their confidence intervals are relatively narrow and do not include 1, indicating a stronger association. For individuals who married between 20-22 or 25-30, the number of children appears to remain nearly unchanged compared to the reference group, but since their confidence intervals include 1, no definitive conclusion can be drawn. For literacy, compared to the reference group (literacy), the illiteracy group has more children, and the confidence interval is very narrow, implying that there is a high probability that the illiteracy group has more children than the literacy group.
 
 ```{r, fig.pos="H"}
 #| warning: false
@@ -175,7 +198,7 @@ mtext(names(forXaxis), 1, at=forXaxis,
 abline(h=1, lty=3)
 ```
 
-More precise values can be seen in @tbl-msum. Compared to the reference group (those who married at ages 22–25), the RRs for those who married at ages 15–18 and 18–20 are 1.079 and 1.064 respectively, with confidence intervals that do not cross 1, indicating that their number of children is significantly higher than that of the reference group. The RR for those who married at ages 0–15 is approximately 1.051; however, its wide confidence interval and relatively high p-value suggest that this effect is not statistically significant. For those who married at ages 20–22, the RR is only 1.030 with a confidence interval that includes 1, indicating a minimal effect on the number of children, while the RRs for the groups that married at ages 25–30 and 30 or above are very close to 1 and have p-values far greater than 0.05, showing no significant difference in fertility compared to the reference group. Moreover, the impact of literacy on the number of children is quite pronounced: the “literacy = no” group has an RR of 1.173, with a confidence interval of [1.120, 1.228] that does not include 1, and a p-value of 0.000, indicating that the number of children among the illiterate is significantly higher than that among the literate.
+More precise values can be seen in @tbl-msum. 
 
 ```{r}
 #| warning: false
