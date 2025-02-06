@@ -98,7 +98,7 @@ kable(summary_df)
 ```
 
 
-Recall our research objective: To explore the impact of literacy and age at marriage on family size (i.e., the number of children). We initially considered using Poisson regression because the number of children, as the response variable, is a non-negative integer. We included "Age at Marriage" and "Literate or Illiterate" as our predictor variables. Additionally, in @xxxx’s study, we have already found that the duration of marriage has a significant effect on the number of children. To control for the influence of different marriage durations on fertility, ensuring that the model reflects the independent effects of literacy and age at marriage, we included "Months of Marriage" as an offset to standardize the exposure period (i.e., the duration of marriage) across observations.
+Recall our research objective: To explore the impact of literacy and age at marriage on family size (i.e., the number of children). We initially considered using Poisson regression because the number of children, as the response variable, is a non-negative integer. We included "Age at Marriage" and "Literate or Illiterate" as our predictor variables. Additionally, in Todesco’s study, we have already found that the duration of marriage has a significant effect on the number of children [@todesco2011matter]. To control for the influence of different marriage durations on fertility, ensuring that the model reflects the independent effects of literacy and age at marriage, we included "Months of Marriage" as an offset to standardize the exposure period (i.e., the duration of marriage) across observations.
 
 It is important to note that, since the link function of the Poisson distribution is log, directly taking log(0) when constructing the offset would result in negative infinity, which could affect the model's stability and accuracy. Therefore, when constructing the offset, we ensured that the number of months of marriage for each observation was at least 1 (even if the original data contained 0s, this adjustment prevents the log(0) issue). Additionally, we divided the months by 12 to convert the time scale to years, making the model's time representation more reasonable. By incorporating the offset, the original response variable (the number of children) is essentially transformed into a rate-based metric in the model. This means that we are now estimating the fertility rate per unit of time (e.g., per year) rather than the total number of children. With the logarithmic link function, this rate is expressed in logarithmic form, allowing the model’s results to be interpreted as the logarithm of the average number of children per year after marriage.
 
@@ -107,8 +107,8 @@ Furthermore, based on @tbl-varibale, we observed that the majority of our sample
 Thus, our model is:
 
 \begin{align*}
-\log(E[\text{Children}_i]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
-&\beta_6 \text{M}_{30toInf}(i) + \beta_8 \text{Literacy}_{i} + \\ &\log(\text{Months}_{i}) + \epsilon_i
+\log(E[\frac{\text{Children}_i}{\text{Months}_{i}}]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
+&\beta_6 \text{M}_{30toInf}(i) + \beta_8 \text{Literacy}_{i} + \\ &\epsilon_i
 \end{align*}
 \begin{align*}
     \textbf{Where:} &\\
