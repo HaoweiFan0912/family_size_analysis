@@ -4,10 +4,9 @@ subtitle: ""
 author: 
   - Haowei Fan
   - Fangning Zhang
-thanks: "Code and data are available at: "
+thanks: "Code and data are available at: https://github.com/HaoweiFan0912/family_size_analysis.git"
 date: today
 date-format: long
-abstract: ""
 format: pdf
 toc-depth: 2    
 number-sections: true
