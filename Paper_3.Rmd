@@ -261,7 +261,7 @@ knitr::kable(
    rbind(confint(nbinom_model)[1:8,c(3,2,1)],
  sd=1/sqrt(confint(nbinom_model, parm='sigma'))[c(3,2,1)]), digits=3)
 ```
-```
+
 
 
 \newpage
