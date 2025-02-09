@@ -38,7 +38,7 @@ load(here::here("portugal.RData"))
 
 Since our objective is to study family size, there is no direct variable in the dataset that represents this concept. Therefore, we assume that each household in the sample has the same number of elder family members, including parents and grandparents. This assumption allows us to use "Number of Children" as a proxy for family size and treat it as our response variable. Since "Number of Children" is clearly a positive integer, we first considered using Poisson regression as our modeling approach. However, since each observation has a different exposure time, we need to ensure the fairness of the model by making the count data from different observational units comparable. To achieve this, we introduce an offset variable to represent the exposure level. Specifically, we divide "Number of Children" by this offset, transforming our response variable into a ratio-based measure, ensuring that the model reasonably explains the event occurrence under a per-unit exposure framework.
 
-Considering that Poisson regression doesn't have a variance parameter and assumes that the mean and variance are equal, it may not perform well when applied to overdispersed data. Therefore, we use the Negative Binomial model as our alternative model. In this Negative Binomial model, we maintain the same link function, offset, and variable levels. The only change is that the model assumption shifts from the number of children following a Poisson distribution to following a Negative Binomial distribution.
+Considering that Poisson regression doesn't have a variance parameter and assumes that the mean and variance are equal, it may not perform well when applied to overdispersed data —i.e., when the variance is significantly larger than the mean. Therefore, we use the Negative Binomial model as our alternative model. In this Negative Binomial model, we maintain the same link function, offset, and variable levels. The only change is that the model assumption shifts from the number of children following a Poisson distribution to following a Negative Binomial distribution.
 
 Upon validating the models’ applicability, we conducted a hypothesis test to evaluate the statistical significance of the models' predictions. The hypotheses are formulated as follows:
 
@@ -159,7 +159,14 @@ Thus, our possion model is:
     \epsilon_i & : \text{ Stochastic error term capturing unobserved heterogeneity and random fluctuations.}
 \end{align*}
 
-Since Poisson regression doesn't have a variance parameter and assumes that the mean and variance are equal, it may not perform well when applied to overdispersed data. In such cases, Poisson regression tends to underestimate standard errors, leading to incorrect significance tests. Therefore, to better model data with excess dispersion, we use Negative Binomial Regression as an alternative model, which introduces an additional dispersion parameter to account for the extra variance:
+```{r}
+#| include: false
+mean(portugal$children)
+var(portugal$children)
+var(portugal$children)/mean(portugal$children)
+```
+
+Since Poisson regression lacks a variance parameter and assumes that the mean and variance are equal, it may not perform well when applied to overdispersed data. Through calculation, we found that the mean number of children is 2.26, while the variance is 3.464, resulting in a variance-to-mean ratio of 1.532. This indicates that the variance is considerably larger than the mean, suggesting the presence of overdispersion. Therefore, to better model data with excess dispersion, we use Negative Binomial Regression as an alternative model:
 
 \begin{align*}
 \log(E[\frac{\text{Children}_i}{\text{Year}_{i}}]) =& \beta_0 + \beta_1 \text{M}_{0to15}(i) + \beta_2 \text{M}_{15to18}(i) + \\ &\beta_3 \text{M}_{18to20}(i) +  \beta_4 \text{M}_{20to22}(i) + \beta_5 \text{M}_{25to30}(i) + \\ 
